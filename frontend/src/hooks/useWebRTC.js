@@ -34,6 +34,7 @@ export default function useWebRTC() {
   const [transferSpeed, setTransferSpeed] = useState('0.00');
   const [logs, setLogs] = useState([]);
   const [errorMsg, setErrorMsg] = useState('');
+  const isLegacyMode = !('showSaveFilePicker' in window);
 
   const socketRef = useRef(null);
   const pcRef = useRef(null);
