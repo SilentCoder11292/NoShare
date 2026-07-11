@@ -14,7 +14,8 @@ export default function useSocket({
   onRoomFull,
   onErrorMsg,
   onPeerDisconnected,
-  onDisconnect
+  onDisconnect,
+  onRoomClosed
 }) {
   const socketRef = useRef(null);
 
@@ -31,7 +32,8 @@ export default function useSocket({
     onRoomFull,
     onErrorMsg,
     onPeerDisconnected,
-    onDisconnect
+    onDisconnect,
+    onRoomClosed
   };
 
   useEffect(() => {
@@ -53,14 +55,15 @@ export default function useSocket({
     socket.on('error-msg', (msg) => callbacks.current.onErrorMsg?.(msg));
     socket.on('peer-disconnected', () => callbacks.current.onPeerDisconnected?.());
     socket.on('disconnect', () => callbacks.current.onDisconnect?.());
+    socket.on('room-closed', () => callbacks.current.onRoomClosed?.());
 
     return () => {
       socket.disconnect();
     };
   }, []);
 
-  const joinRoom = (roomCode) => {
-    socketRef.current?.emit('join-room', roomCode);
+  const joinRoom = (roomData) => {
+    socketRef.current?.emit('join-room', roomData);
   };
 
   const sendOffer = (offer) => {
@@ -75,11 +78,16 @@ export default function useSocket({
     socketRef.current?.emit('ice-candidate', candidate);
   };
 
+  const leaveRoom = () => {
+    socketRef.current?.emit('leave-room');
+  };
+
   return {
     joinRoom,
     sendOffer,
     sendAnswer,
-    sendIceCandidate
+    sendIceCandidate,
+    leaveRoom
   };
 }
 

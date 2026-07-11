@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import useSocket from '../hooks/useSocket';
 import useWebRTC from '../hooks/useWebRTC';
 import useFileTransfer from '../hooks/useFileTransfer';
@@ -45,6 +45,7 @@ export default function RoomConnection() {
   const sendOffer = (offer) => socketRef.current?.sendOffer(offer);
   const sendAnswer = (answer) => socketRef.current?.sendAnswer(answer);
   const joinRoom = (roomCode) => socketRef.current?.joinRoom(roomCode);
+  const leaveRoom = () => socketRef.current?.leaveRoom();
 
   const handleDataChannelMessage = (event) => fileTransferRef.current?.handleDataChannelMessage(event);
   const resetTransferStates = () => fileTransferRef.current?.resetTransferStates();
@@ -53,6 +54,10 @@ export default function RoomConnection() {
   // Socket event handlers
   const handleConnect = useCallback(() => {
     addLog(`Connected to signaling server`, 'success');
+    if (joinedRoomRef.current) {
+      addLog(`Reconnecting to room ${joinedRoomRef.current} as ${roleRef.current}...`, 'info');
+      socketRef.current?.joinRoom({ roomCode: joinedRoomRef.current, role: roleRef.current });
+    }
   }, [addLog]);
 
   const handleConnectError = useCallback((error) => {
@@ -154,6 +159,13 @@ export default function RoomConnection() {
     setStatus('disconnected');
   }, [addLog]);
 
+  const handleRoomClosed = useCallback(() => {
+    cleanupWebRTC();
+    setStatus('disconnected');
+    setErrorMsg('The host has disconnected. Room closed.');
+    addLog('The host disconnected. Room closed.', 'warning');
+  }, [addLog]);
+
   // Instantiate Socket Signaling Hook
   const socket = useSocket({
     onConnect: handleConnect,
@@ -166,7 +178,8 @@ export default function RoomConnection() {
     onRoomFull: handleRoomFull,
     onErrorMsg: handleServerErrorMsg,
     onPeerDisconnected: handlePeerDisconnected,
-    onDisconnect: handleDisconnect
+    onDisconnect: handleDisconnect,
+    onRoomClosed: handleRoomClosed
   });
   socketRef.current = socket;
 
@@ -226,6 +239,7 @@ export default function RoomConnection() {
   };
 
   const handleLeaveRoom = () => {
+    leaveRoom();
     window.location.reload();
   };
 

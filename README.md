@@ -1,24 +1,22 @@
-# NoShare.com — Zero-Storage P2P File Sharing
+# NoShare — Zero-Storage P2P File Sharing
 
-NoShare is a high-performance, browser-based peer-to-peer file sharing platform designed for secure, direct transfers with **zero cloud footprint**. 
+NoShare is a browser-based peer-to-peer file sharing application that streams files directly between devices using WebRTC. Files are never uploaded or saved to intermediate servers.
 
-Unlike conventional sharing services, files transferred via NoShare are never stored on any server. Instead, devices establish a direct connection in the browser using WebRTC, transferring bytes directly from memory to memory.
+## Features
 
-## Key Features
+- **P2P Streaming**: Transfers file data directly between browser tabs using WebRTC `RTCDataChannel`.
+- **Memory Efficient**: Reads and streams files in `64KB` chunks using `File.slice()`, allowing transfers of very large files (10GB+) without memory exhaustion.
+- **Direct-to-Disk Saving**: Writes incoming chunks to the file system in real time via the browser's File System Access API (`showSaveFilePicker`).
+- **Flow & Backpressure Control**: Automatically monitors `dataChannel.bufferedAmount` and pauses reader threads when buffer pressure exceeds `1MB`, resuming when buffer drains.
+- **Security**: 
+  - Socket.io connections are rate-limited to 10 join attempts per minute per IP to prevent brute-forcing.
+  - Cors origins are explicitly restricted on the signaling server.
+- **Double-Sided Keep-Alive**: 
+  - Backend self-pings and frontend background pings prevent Render/Koyeb free tier instances from sleeping.
+  - Active rooms automatically clean up after 1 hour of host inactivity.
+  - Switching tabs or backgrounding/locking screen on mobile will not close active transfers; connections will automatically resume when returning.
 
-- **Zero Cloud Storage**: Files are streamed directly between peers using `RTCDataChannel`. No files are uploaded, cached, or saved on intermediate servers.
-- **Zero-RAM Slicing Loop**: Sequentially reads files in `64KB` blocks (`File.slice()`), preventing memory exhaustion crashes even when transmitting files up to `10GB+`.
-- **Direct-to-Disk Streaming**: Automatically writes received chunks to the local hard drive in real time via the native `FileSystemWritableFileStream` API (`showSaveFilePicker`), bypassing RAM limits.
-- **Network Resilience & Backpressure Control**:
-  - Dynamically manages backpressure thresholds, pausing stream reads if `dataChannel.bufferedAmount` exceeds `1MB` and resuming once it drains.
-  - Automatically aborts active handles and clears queues if WebRTC connection states transition to `disconnected` or `failed`.
-- **Interactive Handshakes & User Gesture Security**: Prompts the receiver to explicitly Accept or Decline incoming transfers, invoking the save dialog securely within onClick bounds to satisfy modern browser security restrictions.
-- **Production-Grade Security**:
-  - Restricts signaling server access to authorized domains via CORS configurations.
-  - Mitigates brute-forcing on room codes with Socket.io connection rate limiters (maximum 10 connections per minute per IP).
-- **Responsive System Themes**: Features a premium light, dark, and system-adaptive visual theme pill toggle matching professional design guidelines.
-
-## Technical Architecture
+## Architecture
 
 ```
 [ Sender (Host) ]                                           [ Receiver (Guest) ]
@@ -44,73 +42,50 @@ Unlike conventional sharing services, files transferred via NoShare are never st
 
 ## Tech Stack
 
-- **Backend**: Node.js, Express, Socket.io (Signaling & Room matching)
-- **Frontend**: React (Vite), Native WebRTC APIs (`RTCPeerConnection`, `RTCDataChannel`)
-- **Storage**: Native Browser File System Access API
+- **Backend**: Node.js, Express, Socket.io
+- **Frontend**: React, Vite, WebRTC APIs (`RTCPeerConnection`, `RTCDataChannel`)
 
 ## Getting Started
 
 ### Prerequisites
 
-Ensure you have **Node.js** (v16+) installed.
+- Node.js (v18+)
 
-### Setup Instructions
+### Installation
 
-1. **Clone the Repository**:
+1. **Clone repository**:
    ```bash
    git clone https://github.com/SilentCoder11292/NoShare.git
    cd NoShare
    ```
 
-2. **Install Dependencies**:
-   - Backend:
+2. **Install dependencies**:
+   * Backend:
      ```bash
-     cd backend
-     npm install
+     cd backend && npm install
      ```
-   - Frontend:
+   * Frontend:
      ```bash
-     cd ../frontend
-     npm install
+     cd ../frontend && npm install
      ```
 
-3. **Run Locally**:
-   - Start backend server (port 5000):
+3. **Run locally**:
+   * Start signaling server (port 5000):
      ```bash
-     cd backend
-     npm start
+     cd backend && npm run dev
      ```
-   - Start frontend Vite dev server (port 5173):
+   * Start Vite client (port 5173):
      ```bash
-     cd ../frontend
-     npm run dev
+     cd ../frontend && npm run dev
      ```
 
-4. **Production Build**:
-   ```bash
-   npm run build
-   ```
+## Production Deployment (Free Tier Keep-Alive)
 
-## Keep-Alive & Free-Tier Hosting (Render/Koyeb)
+Free-tier hosting platforms (such as Render or Koyeb) spin down backend instances after 15 minutes of inactivity. To prevent cold starts:
 
-Free-tier hosting providers like Render and Koyeb put backend instances to sleep after 15 minutes of inactivity. To ensure a fast, seamless connection when users visit NoShare, we have implemented a double-sided keep-alive system:
+1. **Set Environment Variables** on your backend:
+   - `BACKEND_URL`: The URL of your signaling server (e.g. `https://noshare-backend.onrender.com`).
+   - `FRONTEND_URL` (optional): The URL of your frontend client.
 
-1. **Frontend-to-Backend Keep-Alive**: While any user has the NoShare frontend page open in their browser, the frontend automatically sends a lightweight ping to the backend `/health` endpoint every 10 minutes, preventing it from spinning down.
-2. **Backend Self-Pinging**: When started, the backend schedules a self-pinging routine using a native interval every 14 minutes. By sending a request to itself, it resets the Render inactivity timer.
-
-### Configuration (Environment Variables)
-
-To activate the keep-alive routines on your production deployment, configure the following environment variables in your backend service dashboard:
-
-- `BACKEND_URL`: The URL of your backend signaling service (e.g., `https://noshare-signaling.onrender.com`). If set, the server will ping itself every 14 minutes.
-- `FRONTEND_URL`: (Optional) The URL of your frontend client. If set, the backend will also ping the frontend to keep it warm if it runs on a web service.
-
-### 24/7 Warm Start (Zero Cold Start Delay)
-
-Even with self-pinging, if your backend server does spin down (e.g., after a new deployment or maintenance restart), it needs one initial request to wake up.
-
-To keep it awake 24/7 with zero initial startup lag:
-1. Sign up for a free account on [UptimeRobot](https://uptimerobot.com/) or [cron-job.org](https://cron-job.org/).
-2. Create a new HTTP monitor pointing to your backend health endpoint: `https://your-backend-url.onrender.com/health`.
-3. Set the check interval to **10 minutes**. This will ping your backend externally and keep it warm constantly.
-
+2. **24/7 Warm Start**:
+   - Register a free monitor at [UptimeRobot](https://uptimerobot.com/) or [cron-job.org](https://cron-job.org/) pointing to `https://<your-backend-url>/health` with a 10-minute check interval. This generates external traffic and keeps the server warm.
