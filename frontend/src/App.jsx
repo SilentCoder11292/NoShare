@@ -27,7 +27,7 @@ function App() {
       </main>
 
       <footer className="app-footer">
-        <p>NoShare.com &copy; 2026. Phase 1 - Signaling Server matched.</p>
+        <p>NoShare &copy; {new Date().getFullYear()}. Direct & Secure P2P File Sharing.</p>
       </footer>
     </div>
   );
