@@ -143,26 +143,26 @@ function App() {
           {isGuideOpen && (
             <div className="info-drawer">
               <div className="info-drawer-title">
-                <span>How P2P Transfer & Data Cost Works</span>
+                <span>How P2P Local Transfer Works</span>
               </div>
               <div className="info-drawer-grid">
                 <div className="info-drawer-card">
                   <div className="info-card-header">
                     <span className="info-badge-free">0 MB Data</span>
-                    <span>Same Wi-Fi Connection</span>
+                    <span>Direct Local Streaming</span>
                   </div>
                   <p className="info-card-desc">
-                    If both devices share the same Wi-Fi router, files stream locally. Zero internet plan bytes are consumed.
+                    Files stream directly between devices over your local Wi-Fi router. Zero internet bandwidth is consumed to send your files.
                   </p>
                 </div>
 
                 <div className="info-drawer-card">
                   <div className="info-card-header">
-                    <span className="info-badge-warning">Consumes Data</span>
-                    <span>Different Networks</span>
+                    <span className="info-badge-warning">Required</span>
+                    <span>Same Wi-Fi Network</span>
                   </div>
                   <p className="info-card-desc">
-                    If on different connections (like cellular and home Wi-Fi), bytes travel over the internet. A 1 GB file transfer uses 1 GB of your data plan.
+                    Both devices must be connected to the same Wi-Fi network. Connections across different networks (e.g. 4G to Wi-Fi) are blocked for security and privacy.
                   </p>
                 </div>
               </div>
