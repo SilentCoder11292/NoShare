@@ -143,7 +143,7 @@ export default function useWebRTC({
     };
   };
 
-  const initPeerConnection = () => {
+  const initPeerConnection = (currentRole) => {
     addLog('Initializing new RTCPeerConnection...', 'info');
     const pc = new RTCPeerConnection(PC_CONFIG);
     pcRef.current = pc;
@@ -192,7 +192,7 @@ export default function useWebRTC({
       }
     };
 
-    if (role === 'host') {
+    if (currentRole === 'host') {
       const channel = pc.createDataChannel('noshare-channel', { ordered: true });
       setupDataChannel(channel);
     } else {

@@ -75,7 +75,7 @@ export default function RoomConnection() {
     addLog('Both peers are connected to the room. Initiating WebRTC Handshake.', 'success');
     
     if (roleRef.current === 'host') {
-      const pc = initPeerConnection();
+      const pc = initPeerConnection(roleRef.current);
       try {
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
@@ -89,7 +89,7 @@ export default function RoomConnection() {
   const handleOffer = useCallback(async (offer) => {
     setErrorMsg('');
     addLog('SDP Offer received from peer.', 'success');
-    const pc = initPeerConnection();
+    const pc = initPeerConnection(roleRef.current);
     try {
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
       await processPendingCandidates();
