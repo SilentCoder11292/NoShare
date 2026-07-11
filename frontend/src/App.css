@@ -979,3 +979,141 @@ body {
   letter-spacing: 0.02em;
 }
 
+.connection-type-item {
+  grid-column: span 2;
+}
+
+.connection-type-label {
+  width: 90px !important;
+}
+
+.connection-type-value {
+  color: var(--color-primary);
+}
+
+.header-right-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* ==========================================
+   MOBILE & RESPONSIVE UI REFINEMENTS
+   ========================================== */
+@media (max-width: 36rem) {
+  .app-container {
+    padding: 1.5rem 1rem;
+  }
+
+  .app-header {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.25rem;
+    width: 100%;
+  }
+
+  .logo-container {
+    gap: 0.35rem;
+  }
+
+  .logo-icon {
+    width: 1.35rem;
+    height: 1.35rem;
+  }
+
+  .header-right-group {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  /* Show badge but style it smaller for mobile spacing */
+  .app-header .badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 0.15rem 0.45rem;
+    letter-spacing: 0.02em;
+  }
+
+  .logo-text {
+    font-size: 1.15rem;
+  }
+
+  .logo-text .accent {
+    font-size: 1.25rem;
+  }
+
+  .theme-toggle-pill {
+    padding: 1px;
+  }
+
+  .theme-toggle-btn {
+    padding: 4px;
+  }
+
+  .theme-toggle-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .hero-section h1 {
+    font-size: 1.85rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.85rem;
+    padding: 0 0.5rem;
+  }
+
+  .connection-card {
+    padding: 1.25rem;
+    gap: 1.25rem;
+    border-radius: 16px;
+  }
+
+  /* Stack info details vertically on mobile to prevent clipping and overflow */
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .info-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 0.4rem;
+  }
+
+  .light .info-item {
+    border-bottom-color: rgba(17, 17, 17, 0.05);
+  }
+
+  .info-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .info-item .label {
+    width: 75px;
+  }
+
+  .info-item .value {
+    font-size: 0.8rem;
+  }
+
+  .connection-type-item {
+    grid-column: span 1;
+  }
+
+  .info-drawer {
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 12px;
+  }
+
+  .info-drawer-title {
+    font-size: 0.85rem;
+  }
+}
+
+

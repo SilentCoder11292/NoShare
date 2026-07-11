@@ -88,7 +88,7 @@ function App() {
           <span className="logo-text">No<span className="accent">Share</span></span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="header-right-group">
           {/* Custom Theme toggle pill */}
           <div className="theme-toggle-pill">
             <button 

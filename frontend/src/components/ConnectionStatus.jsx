@@ -36,9 +36,9 @@ export default function ConnectionStatus({
             <span className="value capitalize font-bold">{dataChannelStatus}</span>
           </div>
           {webrtcState === 'connected' && (
-            <div className="info-item" style={{ gridColumn: 'span 2' }}>
-              <span className="label" style={{ width: '90px' }}>Connection Type:</span>
-              <span className="value font-bold" style={{ color: 'var(--color-primary)' }}>{connectionType}</span>
+            <div className="info-item connection-type-item">
+              <span className="label connection-type-label">Connection Type:</span>
+              <span className="value font-bold connection-type-value">{connectionType}</span>
             </div>
           )}
         </div>
