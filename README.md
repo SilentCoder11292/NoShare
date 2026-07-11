@@ -90,3 +90,27 @@ Ensure you have **Node.js** (v16+) installed.
    ```bash
    npm run build
    ```
+
+## Keep-Alive & Free-Tier Hosting (Render/Koyeb)
+
+Free-tier hosting providers like Render and Koyeb put backend instances to sleep after 15 minutes of inactivity. To ensure a fast, seamless connection when users visit NoShare, we have implemented a double-sided keep-alive system:
+
+1. **Frontend-to-Backend Keep-Alive**: While any user has the NoShare frontend page open in their browser, the frontend automatically sends a lightweight ping to the backend `/health` endpoint every 10 minutes, preventing it from spinning down.
+2. **Backend Self-Pinging**: When started, the backend schedules a self-pinging routine using a native interval every 14 minutes. By sending a request to itself, it resets the Render inactivity timer.
+
+### Configuration (Environment Variables)
+
+To activate the keep-alive routines on your production deployment, configure the following environment variables in your backend service dashboard:
+
+- `BACKEND_URL`: The URL of your backend signaling service (e.g., `https://noshare-signaling.onrender.com`). If set, the server will ping itself every 14 minutes.
+- `FRONTEND_URL`: (Optional) The URL of your frontend client. If set, the backend will also ping the frontend to keep it warm if it runs on a web service.
+
+### 24/7 Warm Start (Zero Cold Start Delay)
+
+Even with self-pinging, if your backend server does spin down (e.g., after a new deployment or maintenance restart), it needs one initial request to wake up.
+
+To keep it awake 24/7 with zero initial startup lag:
+1. Sign up for a free account on [UptimeRobot](https://uptimerobot.com/) or [cron-job.org](https://cron-job.org/).
+2. Create a new HTTP monitor pointing to your backend health endpoint: `https://your-backend-url.onrender.com/health`.
+3. Set the check interval to **10 minutes**. This will ping your backend externally and keep it warm constantly.
+

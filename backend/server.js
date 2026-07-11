@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { getCorsOptions } from './config/cors.js';
 import { registerSignalHandlers } from './sockets/signalHandler.js';
+import { startKeepAlive } from './utils/keepAlive.js';
 
 const app = express();
 app.use(cors());
@@ -26,4 +27,7 @@ registerSignalHandlers(io);
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
   console.log(`Signaling server listening on port ${PORT}`);
+  
+  // Start the self-pinging keep-alive job to keep Render awake
+  startKeepAlive();
 });

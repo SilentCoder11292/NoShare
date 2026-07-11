@@ -1,7 +1,20 @@
 import React from 'react';
 
-export default function RoomJoinForm({ onSubmit, roomCode, setRoomCode, status, errorMsg }) {
+export default function RoomJoinForm({ onSubmit, roomCode, setRoomCode, status, errorMsg, isOnline, serverStatus }) {
   if (status !== 'disconnected') return null;
+
+  const isDisabled = !isOnline || serverStatus !== 'online';
+
+  let placeholderText = "Enter 6-digit room code";
+  if (!isOnline) {
+    placeholderText = "Internet connection offline...";
+  } else if (serverStatus === 'checking') {
+    placeholderText = "Checking signaling server...";
+  } else if (serverStatus === 'waking-up') {
+    placeholderText = "Waking up server (please wait)...";
+  } else if (serverStatus === 'offline') {
+    placeholderText = "Signaling server offline...";
+  }
 
   return (
     <form onSubmit={onSubmit} className="connection-form">
@@ -17,14 +30,15 @@ export default function RoomJoinForm({ onSubmit, roomCode, setRoomCode, status, 
         <input
           type="text"
           maxLength={6}
-          placeholder="Enter 6-digit room code"
+          placeholder={placeholderText}
           value={roomCode}
           onChange={(e) => setRoomCode(e.target.value.replace(/\D/g, ''))}
           required
           autoFocus
+          disabled={isDisabled}
         />
       </div>
-      <button type="submit" className="btn-primary">
+      <button type="submit" className="btn-primary" disabled={isDisabled}>
         Join Room
       </button>
     </form>

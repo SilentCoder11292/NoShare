@@ -37,7 +37,7 @@ export default function useSocket({
   useEffect(() => {
     socketRef.current = io(BACKEND_URL, {
       autoConnect: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: Infinity,
     });
 
     const socket = socketRef.current;
