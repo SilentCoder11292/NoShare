@@ -28,6 +28,7 @@ function App() {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('noshare-theme') || 'system';
   });
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   // Apply Theme Toggle logic globally
   useEffect(() => {
@@ -129,6 +130,44 @@ function App() {
           <p className="hero-subtitle">
             Instantly stream files directly between devices in your browser. No middleman. No cloud storage limits. Pure privacy.
           </p>
+
+          <button className="info-trigger-btn" onClick={() => setIsGuideOpen(!isGuideOpen)} type="button">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }}>
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4"/>
+              <path d="M12 8h.01"/>
+            </svg>
+            <span style={{ verticalAlign: 'middle' }}>How it works & Data Usage</span>
+          </button>
+
+          {isGuideOpen && (
+            <div className="info-drawer">
+              <div className="info-drawer-title">
+                <span>How P2P Transfer & Data Cost Works</span>
+              </div>
+              <div className="info-drawer-grid">
+                <div className="info-drawer-card">
+                  <div className="info-card-header">
+                    <span className="info-badge-free">0 MB Data</span>
+                    <span>Same Wi-Fi Connection</span>
+                  </div>
+                  <p className="info-card-desc">
+                    If both devices share the same Wi-Fi router, files stream locally. Zero internet plan bytes are consumed.
+                  </p>
+                </div>
+
+                <div className="info-drawer-card">
+                  <div className="info-card-header">
+                    <span className="info-badge-warning">Consumes Data</span>
+                    <span>Different Networks</span>
+                  </div>
+                  <p className="info-card-desc">
+                    If on different connections (like cellular and home Wi-Fi), bytes travel over the internet. A 1 GB file transfer uses 1 GB of your data plan.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <RoomConnection />
