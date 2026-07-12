@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import RoomConnection from './components/RoomConnection';
-import useHealthCheck from './hooks/useHealthCheck';
 import './App.css';
 
 // Low-profile SVG Icons for the Theme toggle button
@@ -26,7 +25,6 @@ const MonitorIcon = () => (
 );
 
 function App() {
-  useHealthCheck();
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('noshare-theme') || 'system';
   });

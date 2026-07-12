@@ -1,91 +1,24 @@
-# NoShare — Zero-Storage P2P File Sharing
+# NoShare
 
-NoShare is a browser-based peer-to-peer file sharing application that streams files directly between devices using WebRTC. Files are never uploaded or saved to intermediate servers.
-
-## Features
-
-- **P2P Streaming**: Transfers file data directly between browser tabs using WebRTC `RTCDataChannel`.
-- **Memory Efficient**: Reads and streams files in `64KB` chunks using `File.slice()`, allowing transfers of very large files (10GB+) without memory exhaustion.
-- **Direct-to-Disk Saving**: Writes incoming chunks to the file system in real time via the browser's File System Access API (`showSaveFilePicker`).
-- **Flow & Backpressure Control**: Automatically monitors `dataChannel.bufferedAmount` and pauses reader threads when buffer pressure exceeds `1MB`, resuming when buffer drains.
-- **Security**: 
-  - Socket.io connections are rate-limited to 10 join attempts per minute per IP to prevent brute-forcing.
-  - Cors origins are explicitly restricted on the signaling server.
-- **Double-Sided Keep-Alive**: 
-  - Backend self-pings and frontend background pings prevent Render/Koyeb free tier instances from sleeping.
-  - Active rooms automatically clean up after 1 hour of host inactivity.
-  - Switching tabs or backgrounding/locking screen on mobile will not close active transfers; connections will automatically resume when returning.
-
-## Architecture
-
-```
-[ Sender (Host) ]                                           [ Receiver (Guest) ]
-       |                                                             |
-       | ------ 1. Connect to Room (via Signaling Server) ---------- |
-       |                                                             |
-       | <----------------- 2. WebRTC Handshake -------------------> |
-       |                                                             |
-       | ------ 3. Metadata Header (File Name, Size, MIME) --------> |
-       |                                                             |
-       |                                                    [ Prompts User Accept ]
-       |                                                    [ Resolves Save Picker]
-       |                                                             |
-       | <----- 4. Ready Handshake ('ready') ------------------------|
-       |                                                             |
-       | ====== 5. Binary Chunk Stream (64KB Slices) ===============>|
-       |           (Monitored Backpressure Flow Control)             |
-       |                                                             |
-       | ====== 6. End-of-File ('eof') ----------------------------->|
-       |                                                             |
-       | <----- 7. Received Acknowledgment ('ack') ------------------|
-```
+NoShare is a browser-based peer-to-peer file sharing project that streams files directly between devices using WebRTC. Instead of uploading files to a cloud server first, the transfer happens directly between browser tabs, meaning zero data is stored intermediately.
 
 ## Tech Stack
+* **Frontend**: React (Vite), native browser WebRTC APIs (`RTCPeerConnection`, `RTCDataChannel`), and the File System Access API.
+* **Backend**: Node.js, Express, Socket.io (used strictly for signaling to establish the WebRTC peer connection).
 
-- **Backend**: Node.js, Express, Socket.io
-- **Frontend**: React, Vite, WebRTC APIs (`RTCPeerConnection`, `RTCDataChannel`)
+## How it works & Engineering Details
 
-## Getting Started
+The main technical challenge with browser-based P2P transfers is handling large files (e.g., 10GB+) without crashing the browser's tab memory. NoShare solves this through a few specific design decisions:
 
-### Prerequisites
+### 1. Signaling
+WebRTC peers cannot connect directly without first knowing each other's network routes (ICE candidates) and session descriptions (SDP). We use a minimal Node.js backend with Socket.io to relay this handshake metadata. Once the WebRTC peer connection is established, the signaling server is completely out of the data path, and all data travels directly client-to-client.
 
-- Node.js (v18+)
+### 2. Chunked Streaming
+Reading an entire multi-gigabyte file into browser memory causes instant crashes. NoShare reads the file on-demand in small `64KB` chunks using the browser's standard `File.slice()` API. These slices are sent sequentially as binary data over the `RTCDataChannel`.
 
-### Installation
+### 3. Flow Control & Backpressure
+If the sender transmits data faster than the receiver's network or disk write speed can handle, the WebRTC buffer fills up and crashes the channel.
+To prevent this, the sender monitors the `bufferedAmount` on the `RTCDataChannel`. If the buffered data exceeds `1MB`, the reader thread is paused. It resumes only when the buffer drains below `512KB` (via the `bufferedamountlow` event).
 
-1. **Clone repository**:
-   ```bash
-   git clone https://github.com/SilentCoder11292/NoShare.git
-   cd NoShare
-   ```
-
-2. **Install dependencies**:
-   * Backend:
-     ```bash
-     cd backend && npm install
-     ```
-   * Frontend:
-     ```bash
-     cd ../frontend && npm install
-     ```
-
-3. **Run locally**:
-   * Start signaling server (port 5000):
-     ```bash
-     cd backend && npm run dev
-     ```
-   * Start Vite client (port 5173):
-     ```bash
-     cd ../frontend && npm run dev
-     ```
-
-## Production Deployment (Free Tier Keep-Alive)
-
-Free-tier hosting platforms (such as Render or Koyeb) spin down backend instances after 15 minutes of inactivity. To prevent cold starts:
-
-1. **Set Environment Variables** on your backend:
-   - `BACKEND_URL`: The URL of your signaling server (e.g. `https://noshare-backend.onrender.com`).
-   - `FRONTEND_URL` (optional): The URL of your frontend client.
-
-2. **24/7 Warm Start**:
-   - Register a free monitor at [UptimeRobot](https://uptimerobot.com/) or [cron-job.org](https://cron-job.org/) pointing to `https://<your-backend-url>/health` with a 10-minute check interval. This generates external traffic and keeps the server warm.
+### 4. Direct-to-Disk Saving
+On the receiving side, holding incoming chunks in memory until the transfer completes would also trigger memory exhaustion. We use the browser's File System Access API (`showSaveFilePicker`) to obtain a writable file handle. Incoming chunks are written directly to the user's hard drive in real time, keeping the browser memory footprint extremely low and constant throughout the transfer.
